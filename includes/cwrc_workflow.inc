@@ -329,7 +329,7 @@ XML;
    * @param WorkflowItem $assigned
    *   WorkflowItem object representing the assigned node.
    */
-  public function addWorkflowStep($pid, WorkflowItem $workflow, WorkflowItem $activity, WorkflowItem $assigned) {
+  public function addWorkflowStep($pid, WorkflowItem $workflow, WorkflowItem $activity, WorkflowItem $assigned = NULL) {
     $this->pid = $pid;
     $parent = $this->doc->documentElement;
     $element = $this->doc->createElement($workflow->workName);
@@ -390,6 +390,14 @@ XML;
   protected function createAssigned(DOMElement $parent, WorkflowItem $child) {
     $assigned = $this->doc->createElement($child->workName);
     $assigned->setAttribute("category", $child->typeAttributes['category']);
+
+    if (isset($child->typeAttributes[WorkflowConst::NOTE])) {
+      $note = $this->doc->createElement(WorkflowConst::NOTE);
+      $note_body = $this->doc->createTextNode($child->typeAttributes[WorkflowConst::NOTE]);
+      $note->innerHTML = $child->typeAttributes[WorkflowConst::NOTE];
+      $note->appendChild($note_body);
+      $assigned->appendChild($note);
+    }
 
     $parent->appendChild($assigned);
     $message = $this->createMessage($child);

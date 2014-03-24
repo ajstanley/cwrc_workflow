@@ -172,7 +172,9 @@ function islandora_workflow_rest_mail($key, &$message, $params) {
   $message['body'][] = t("Dear @username\n\n@message\n\n@link\n\n", $variables, array('langcode' => $langcode));
 
   $pm_message = "";
-  if (module_exists('privatemsg')) {
+  $success;
+  $private_msg_available = module_exists('privatemsg');
+  if ($private_msg_available) {
     $pm_message = "Private message notification sent";
     // Utilize the Privatemsg module notification system.
     // Send a message to the user with privatemsg_new_thread.
@@ -197,7 +199,8 @@ function islandora_workflow_rest_mail($key, &$message, $params) {
           )
       ), 'status'
   );
-  if ($message['send']) {
+
+  if ($message['send'] && (!$success['success'])) {
     drupal_set_message(
         t("@email", array(
       '@email' => "Email force sent to $formated_name",
@@ -325,7 +328,6 @@ function islandora_workflow_rest_add_workflow_step() {
     $activity_params = (isset($params['activity']) ? json_decode($params['activity'], TRUE) : array());
     $tool_id = (isset($params['toolID']) ? array("toolID" => json_decode($params['toolID'])) : array());
     $assigned_params = (isset($params['assigned']) ? json_decode($params['assigned'], TRUE) : array());
-
     $assigned_accounts = array();
     $activity_accounts = array();
     if (isset($activity_params['recipient'])) {
@@ -354,10 +356,8 @@ function islandora_workflow_rest_add_workflow_step() {
     }
     $activity = new WorkflowItem(WorkflowConst::ACTIVITY, $activity_params
     );
-    $assigned = new WorkflowItem(WorkflowConst::ASSIGNED, $assigned_params
-    );
-    $entry = new WorkflowItem(WorkflowConst::WORKFLOW, $tool_id
-    );
+    $assigned = new WorkflowItem(WorkflowConst::ASSIGNED, $assigned_params);
+    $entry = new WorkflowItem(WorkflowConst::WORKFLOW, $tool_id);
     // Get the last workflow step, if exists.
     $last_workflow = $workflow->entryToArray();
     if ($last_workflow) {

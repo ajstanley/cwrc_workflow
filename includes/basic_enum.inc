@@ -54,7 +54,7 @@ abstract class BasicEnum {
    */
   public static function isValidValue($value) {
     $values = array_values(self::getConstants());
-    return in_array($value, $values, $strict = TRUE);
+    return in_array($value, $values, $strict = FALSE);
   }
 
   /**
@@ -67,7 +67,7 @@ abstract class BasicEnum {
    *   The constant value.
    */
   public static function getConstantValue($value) {
-    $values = array_values(self::getConstants());
+    $values = self::getConstants();
     return $values[strtoupper($value)];
   }
 }
