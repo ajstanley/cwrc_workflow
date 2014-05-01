@@ -429,8 +429,7 @@ function islandora_workflow_rest_reports_form_validate($form, &$form_state) {
     form_set_error('add_field', t('Please choose at least one field to display.'));
   }
   $query = islandora_workflow_rest_build_query($form_state['values']['terms']);
-  $valid = islandora_workflow_rest_test_solr_query($query);
-  if ($valid) {
+  if (islandora_workflow_rest_test_solr_query($query)) {
     $form_state['values']['query'] = $query;
   }
   else {
