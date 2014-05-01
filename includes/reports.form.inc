@@ -428,6 +428,14 @@ function islandora_workflow_rest_reports_form_validate($form, &$form_state) {
   if (!$has_reports || !$has_report) {
     form_set_error('add_field', t('Please choose at least one field to display.'));
   }
+  $query = islandora_workflow_rest_build_query($form_state['values']['terms']);
+  $valid = islandora_workflow_rest_test_solr_query($query);
+  if ($valid) {
+    $form_state['values']['query'] = $query;
+  }
+  else {
+    form_set_error('', t('Invalid solr query.'));
+  }
 }
 
 /**
@@ -449,7 +457,7 @@ function islandora_workflow_rest_reports_form_submit($form, &$form_state) {
   $record['createdby'] = !user_is_anonymous() ? $user->name : t("unknown");
   $record['editroles'] = serialize(array_filter($form_state['values']['edit_roles']));
   $record['viewroles'] = serialize(array_filter($form_state['values']['view_roles']));
-  $record['query'] = islandora_workflow_rest_build_query($form_state['values']['terms']);
+  $record['query'] = $form_state['values']['query'];
   $record['terms'] = serialize($form_state['values']['terms']);
   $record['solr_terms'] = serialize($form_state['values']['table']['table']['rows']);
 
@@ -655,4 +663,24 @@ function islandora_workflow_rest_cwrc_forkflow_prep_fields() {
     );
   }
   return $solr_fields;
+}
+ /**
+  * Tests validity of solr query.
+  *
+  * @param string $query
+  *   Solr query
+  *
+  * @return bool
+  *   Validity of Solr query
+  */
+function islandora_workflow_rest_test_solr_query($query) {
+  $url = parse_url(variable_get('islandora_solr_url', 'localhost:8080/solr'));
+  $solr = new Apache_Solr_Service($url['host'], $url['port'], $url['path'] . '/');
+  $solr->setCreateDocuments(FALSE);
+  try {
+    $results = $solr->search($query, 0, 1000, array());
+  }
+  catch (Exception $e) {
+  }
+  return isset($results) ? TRUE : FALSE;
 }
